@@ -1,27 +1,29 @@
 import os
 import asyncio
 import edge_tts
-from dotenv import load_dotenv
-
-load_dotenv()
 
 
-async def _generate_speech(text, output_path):
+async def _tts(text, path):
     communicate = edge_tts.Communicate(
         text=text,
         voice="en-US-JennyNeural"
     )
-    await communicate.save(output_path)
+    await communicate.save(path)
 
 
 def speech_agent(state):
+
+    session_id = state["session_id"]
     text = state["description"]
-    audio_path = "outputs/output.mp3"
 
-    # ensure folder exists
-    os.makedirs("outputs", exist_ok=True)
+    output_dir = f"data/{session_id}"
+    os.makedirs(output_dir, exist_ok=True)
 
-    # run async TTS
-    asyncio.run(_generate_speech(text, audio_path))
+    audio_path = os.path.join(output_dir, "output.mp3")
 
-    return {"audio_path": audio_path}
+    asyncio.run(_tts(text, audio_path))
+
+    return {
+        **state,
+        "audio_path": audio_path
+    }

@@ -1,22 +1,12 @@
 class SessionMemory:
     def __init__(self):
-        self.memory = {
-            "history": []
-        }
+        self.store = {}
 
-    def save(self, image_hash, description, prompt):
-        self.memory["image_hash"] = image_hash
-        self.memory["description"] = description
-
-        self.memory["history"].append(prompt)
-
-        self.memory["history"] = self.memory["history"][-5:]
-
-    def get_last_description(self):
-        return self.memory.get("description")
-
-    def get_hash(self):
-        return self.memory.get("image_hash")
-
-    def get_history(self):
-        return self.memory.get("history", [])
+    def get(self, session_id):
+        if session_id not in self.store:
+            self.store[session_id] = {
+                "history": [],
+                "cache": {},   # image_hash -> result
+                "last_hash": None
+            }
+        return self.store[session_id]
