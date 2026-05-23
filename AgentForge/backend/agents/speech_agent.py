@@ -1,20 +1,27 @@
-from openai import OpenAI
+import os
+import asyncio
+import edge_tts
+from dotenv import load_dotenv
 
-client = OpenAI()
+load_dotenv()
+
+
+async def _generate_speech(text, output_path):
+    communicate = edge_tts.Communicate(
+        text=text,
+        voice="en-US-JennyNeural"
+    )
+    await communicate.save(output_path)
 
 
 def speech_agent(state):
-
     text = state["description"]
-
     audio_path = "outputs/output.mp3"
 
-    response = client.audio.speech.create(
-        model="gpt-4o-mini-tts",
-        voice="alloy",
-        input=text
-    )
+    # ensure folder exists
+    os.makedirs("outputs", exist_ok=True)
 
-    response.stream_to_file(audio_path)
+    # run async TTS
+    asyncio.run(_generate_speech(text, audio_path))
 
     return {"audio_path": audio_path}

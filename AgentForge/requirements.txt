@@ -6,3 +6,7 @@ streamlit
 python-dotenv
 pillow
 pydub
+edge-tts
+transformers 
+torch 
+pillow

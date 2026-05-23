@@ -1,16 +1,16 @@
 class SessionMemory:
-
     def __init__(self):
-        self.memory = {}
+        self.memory = {
+            "history": []
+        }
 
     def save(self, image_hash, description, prompt):
         self.memory["image_hash"] = image_hash
         self.memory["description"] = description
 
-        history = self.memory.get("history", [])
-        history.append(prompt)
+        self.memory["history"].append(prompt)
 
-        self.memory["history"] = history[-5:]
+        self.memory["history"] = self.memory["history"][-5:]
 
     def get_last_description(self):
         return self.memory.get("description")

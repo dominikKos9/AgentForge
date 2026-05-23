@@ -1,8 +1,7 @@
-from graph.workflow import workflow
+from backend.graph.workflow import workflow
 
 
 def run_agentforge(image_path):
-
     state = {
         "image_path": image_path,
         "user_prompt": "Describe image",
@@ -10,10 +9,24 @@ def run_agentforge(image_path):
         "description": "",
         "audio_path": "",
         "history": [],
-        "valid_image": False,
+        "valid_image": None,   
         "error": None,
     }
 
-    result = workflow.invoke(state)
+    try:
+        result = workflow.invoke(state)
 
-    return result
+        # optional safety fallback
+        if result.get("valid_image") is False:
+            return {
+                "error": result.get("error", "Invalid image"),
+                "valid_image": False
+            }
+
+        return result
+
+    except Exception as e:
+        return {
+            "valid_image": False,
+            "error": str(e)
+        }
