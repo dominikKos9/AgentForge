@@ -1,0 +1,8 @@
+langchain
+langgraph
+langchain-openai
+openai
+streamlit
+python-dotenv
+pillow
+pydub
