@@ -1,39 +1,47 @@
-from openai import OpenAI
+from transformers import BlipProcessor, BlipForConditionalGeneration
+from PIL import Image
+import torch
 
-client = OpenAI()
+# load once (important for LangGraph performance)
+processor = BlipProcessor.from_pretrained(
+    "Salesforce/blip-image-captioning-base"
+)
+
+model = BlipForConditionalGeneration.from_pretrained(
+    "Salesforce/blip-image-captioning-base"
+)
 
 
 def visual_analysis_agent(state):
+    """
+    LangGraph node:
+    input: state["image_path"], state["detailed"]
+    output: {"description": "..."}
+    """
 
     image_path = state["image_path"]
+    detailed = state.get("detailed", False)
 
-    detailed = state["detailed"]
+    image = Image.open(image_path).convert("RGB")
 
+    # prompt strategy (BLIP uses text conditioning but still works like this)
     prompt = (
-        "Describe this image for a blind person."
-        if not detailed
-        else
-        "Describe this image in high detail for a blind person."
+        "a very detailed description of the image"
+        if detailed
+        else "a short description of the image"
     )
 
-    response = client.chat.completions.create(
-        model="gpt-4.1-mini",
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt},
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"file://{image_path}"
-                        }
-                    },
-                ],
-            }
-        ]
-    )
+    inputs = processor(images=image, text=prompt, return_tensors="pt")
 
-    description = response.choices[0].message.content
+    with torch.no_grad():
+        output = model.generate(
+            **inputs,
+            max_length=120 if detailed else 60
+        )
 
-    return {"description": description}
+    description = processor.decode(output[0], skip_special_tokens=True)
+
+    return {
+        **state,
+        "description": description
+    }

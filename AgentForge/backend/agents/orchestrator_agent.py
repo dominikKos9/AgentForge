@@ -1,5 +1,5 @@
-from tools.image_validator import validate_image
-from tools.hash_tool import generate_hash
+from backend.tools.image_validator import validate_image
+from backend.tools.hash_tool import generate_hash
 
 
 def orchestrator_agent(state):
