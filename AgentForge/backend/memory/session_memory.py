@@ -6,7 +6,7 @@ class SessionMemory:
         if session_id not in self.store:
             self.store[session_id] = {
                 "history": [],
-                "cache": {},   # image_hash -> result
+                "cache": {},  
                 "last_hash": None
             }
         return self.store[session_id]
