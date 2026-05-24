@@ -7,9 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-# -----------------------
-# MODELS INIT (load once)
-# -----------------------
+# MODELS INIT
 processor = BlipProcessor.from_pretrained(
     "Salesforce/blip-image-captioning-large"
 )
@@ -23,9 +21,6 @@ model.eval()
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 
-# -----------------------
-# STEP 1: BLIP CAPTION
-# -----------------------
 def _blip_caption(image, detailed=False):
 
     inputs = processor(images=image, return_tensors="pt")
@@ -43,28 +38,57 @@ def _blip_caption(image, detailed=False):
     return caption
 
 
-# -----------------------
-# STEP 2: GROQ REFINEMENT
-# -----------------------
 def _expand_with_llm(caption, detailed):
 
+    # obični način rada → vrati kratki opis na hrvatskom
     if not detailed:
-        return caption
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Ti si pomoćnik za pristupačnost slijepim i slabovidnim osobama. "
+                        "Tvoj zadatak je pretvoriti opis slike u prirodan i kratak opis na hrvatskom jeziku. "
+                        "Uvijek odgovaraj ISKLJUČIVO na hrvatskom jeziku."
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        f"Prevedi i prirodno opiši ovu sliku na hrvatskom jeziku:\n\n{caption}\n\n"
+                        "Napiši jednu kratku i jasnu rečenicu."
+                    )
+                }
+            ],
+            temperature=0.5
+        )
 
+        return response.choices[0].message.content
+
+
+    # detailed način rada
     response = groq_client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[
             {
                 "role": "system",
                 "content": (
-                    "You are an accessibility assistant for blind users. "
-                    "Expand image descriptions into detailed, clear, and helpful explanations. "
-                    "Include objects, colors, spatial relations, and context."
+                    "Ti si pomoćnik za pristupačnost slijepim i slabovidnim osobama. "
+                    "Tvoj zadatak je generirati detaljan i koristan opis slike na hrvatskom jeziku. "
+                    "Opis mora biti prirodan, jasan i lako razumljiv osobi koja ne vidi sliku. "
+                    "Uvijek odgovaraj ISKLJUČIVO na hrvatskom jeziku. "
+                    "Uključi sljedeće ako je vidljivo na slici: "
+                    "objekte, boje, raspored elemenata, položaje u prostoru, radnje, izraz ili atmosferu scene i kontekst."
                 )
             },
             {
                 "role": "user",
-                "content": f"Describe this image in detail based on this caption:\n\n{caption}"
+                "content": (
+                    f"Na temelju ovog opisa slike napravi detaljan opis na hrvatskom jeziku:\n\n{caption}\n\n"
+                    "Objasni što se nalazi na slici tako da slijepa ili slabovidna osoba može što bolje razumjeti sadržaj. "
+                    "Opis neka bude detaljan, ali prirodan i lako razumljiv."
+                )
             }
         ],
         temperature=0.7
@@ -73,9 +97,6 @@ def _expand_with_llm(caption, detailed):
     return response.choices[0].message.content
 
 
-# -----------------------
-# MAIN AGENT (LangGraph NODE)
-# -----------------------
 def visual_analysis_agent(state):
 
     image_path = state["image_path"]
@@ -83,10 +104,8 @@ def visual_analysis_agent(state):
 
     image = Image.open(image_path).convert("RGB")
 
-    # STEP 1
     caption = _blip_caption(image, detailed=False)
 
-    # STEP 2 (upgrade if needed)
     description = _expand_with_llm(caption, detailed)
 
     return {

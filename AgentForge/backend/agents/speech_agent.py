@@ -6,7 +6,7 @@ import edge_tts
 async def _tts(text, path):
     communicate = edge_tts.Communicate(
         text=text,
-        voice="en-US-JennyNeural"
+        voice="hr-HR-GabrijelaNeural"
     )
     await communicate.save(path)
 

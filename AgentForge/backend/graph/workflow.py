@@ -10,7 +10,6 @@ from backend.tools.mcp_tools import describe_image_tool
 builder = StateGraph(AgentState)
 
 
-# nodes
 builder.add_node("orchestrator", orchestrator_agent)
 
 
@@ -22,7 +21,6 @@ builder.add_node("vision", vision_node)
 builder.add_node("speech", speech_agent)
 
 
-# flow
 builder.add_edge(START, "orchestrator")
 
 
