@@ -1,0 +1,10 @@
+1.Potrebno je imati instaliran Python
+2.Nakon što se projekt otvori u VSCode ili nekom sličnom okruženju potrebno je otvoriti terminal u direktoriju u kojem se nalazi projekt
+3.Zatim se pokrene naredba: pip install -r requirements.txt   kojom će se instalirati svi potrebni depencies
+4.U .env datoteci koja se također nalazi u direktoriju projekta, treba unijeti svoj GROQ_API_KEY kao npr. GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxxx
+5.Aplikacija se pokreće sa naredbom: streamlit run frontend/app.py  i nalazi se u web pregledniku na:  http://localhost:8501
+6.Kad se pokrene stranica sliku možemo upload-ati klikom na gumb Upload
+7.Zatim možemo odabrati želimo li detaljan opis slike ili ne odabirom kvačice
+8.Nakon toga trebamo stisnuti gumb Generiraj opis
+9.Aplikacija će generirati opis slike kao tekst i kao zvuk koji možemo pokrenuti
+10.Na dnu se nalaze neki prethodni generirani opisi unutar ovog Sessiona
